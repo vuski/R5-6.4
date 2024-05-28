@@ -51,7 +51,7 @@ public class AnalysisRequest {
     public int toTime;
     public String transitModes;
     public float walkSpeed;
-    public int maxTripDurationMinutes = 120;
+    public static int maxTripDurationMinutes = 240;
     public int maxRides = 4;
     public int[] percentiles;
     public int[] cutoffsMinutes;

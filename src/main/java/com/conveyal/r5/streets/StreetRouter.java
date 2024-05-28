@@ -522,9 +522,15 @@ public class StreetRouter {
         EdgeStore.Edge edge = streetLayer.edgeStore.getCursor();
 
         if (transitStopSearch) {
-            routingVisitor = new StopVisitor(streetLayer, quantityToMinimize, transitStopSearchQuantity, profileRequest.getMinTimeSeconds(streetMode));
+            LOG.debug("Routing to find transit stops");
+            routingVisitor = new StopVisitor(streetLayer, quantityToMinimize, transitStopSearchQuantity,
+                    profileRequest.getMinTimeSeconds(streetMode));
         } else if (flagSearch != null) {
-            routingVisitor = new VertexFlagVisitor(streetLayer, quantityToMinimize, flagSearch, flagSearchQuantity, profileRequest.getMinTimeSeconds(streetMode));
+            LOG.debug("Routing to find vertices with flag {}", flagSearch);
+            routingVisitor = new VertexFlagVisitor(streetLayer, quantityToMinimize, flagSearch,
+                    flagSearchQuantity, profileRequest.getMinTimeSeconds(streetMode));
+        } else {
+            LOG.debug("Routing to find a path");
         }
         while (!queue.isEmpty()) {
             State s0 = queue.poll();
@@ -560,6 +566,10 @@ public class StreetRouter {
 
             // Hit RoutingVistor callbacks to monitor search progress.
             if (routingVisitor != null) {
+                // 여기서 정류장 번호를 stops에 넣어준다.
+                // state.getRoutingVariable(dominanceVariable)의 리턴값은 시간이나 거리다.
+                // 이게 함수의 처리 부분 -> stops.put(stop, state.getRoutingVariable(dominanceVariable));
+                // 즉 정류장 번호를 넣으면, 그 정류장까지의 시간이나 거리를 리턴해준다.
                 routingVisitor.visitVertex(s0);
 
                 if (routingVisitor.shouldBreakSearch()) {
@@ -570,7 +580,8 @@ public class StreetRouter {
             }
 
             // If this state is at the destination, figure out the cost at the destination and use it for target pruning.
-            // TODO explain what "target pruning" is in this context and why we need it. It seems that this is mainly about traversing split streets.
+            // TODO explain what "target pruning" is in this context and why we need it.
+            //      It seems that this is mainly about traversing split streets.
             // By using getState(split) we include turn restrictions and turn costs.
             // We've already added this state to bestStates so getState will be correct.
             if (destinationSplit != null && (s0.vertex == destinationSplit.vertex0 || s0.vertex == destinationSplit.vertex1)) {

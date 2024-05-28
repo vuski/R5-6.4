@@ -1,5 +1,6 @@
 package com.conveyal.r5.analyst.network;
 
+import com.conveyal.analysis.models.AnalysisRequest;
 import com.conveyal.r5.analyst.FreeFormPointSet;
 import com.conveyal.r5.analyst.Grid;
 import com.conveyal.r5.analyst.PointSet;
@@ -47,9 +48,9 @@ public class GridSinglePointTaskBuilder {
         // But in a list of more than 100 items, percentile 1 and 99 will return the first and last elements.
         task.percentiles = DistributionTester.PERCENTILES;
         // In single point tasks all 121 cutoffs are required (there is a check).
-        task.cutoffsMinutes = IntStream.rangeClosed(0, 120).toArray();
+        task.cutoffsMinutes = IntStream.rangeClosed(0, AnalysisRequest.maxTripDurationMinutes).toArray();
         task.decayFunction = new StepDecayFunction();
-        task.monteCarloDraws = 1200; // Ten per minute over a two hour window.
+        task.monteCarloDraws = AnalysisRequest.maxTripDurationMinutes * 10; // Ten per minute over a two hour window.
         // By default, traverse one block in a round predictable number of seconds.
         task.walkSpeed = gridLayout.streetGridSpacingMeters / gridLayout.walkBlockTraversalTimeSeconds;
         // Record more detailed information to allow comparison to theoretical travel time distributions.

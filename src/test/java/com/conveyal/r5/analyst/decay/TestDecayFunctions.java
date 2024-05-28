@@ -1,5 +1,6 @@
 package com.conveyal.r5.analyst.decay;
 
+import com.conveyal.analysis.models.AnalysisRequest;
 import com.google.common.primitives.Doubles;
 import gnu.trove.list.TDoubleList;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -49,7 +50,7 @@ public class TestDecayFunctions {
         // Set constant for a half life of 10 minutes (in seconds)
         fixedFunction.decayConstant = -(FastMath.log(0.5) / TEN_MINUTES_IN_SECONDS);
         testFunctionCharacteristics(fixedFunction);
-        for (int t = 0; t < 120; t++) {
+        for (int t = 0; t < AnalysisRequest.maxTripDurationMinutes; t++) {
             int travelTimeSeconds = t * 60;
             assertEquals(
                     movableFunction.computeWeight(TEN_MINUTES_IN_SECONDS, travelTimeSeconds),
@@ -68,7 +69,7 @@ public class TestDecayFunctions {
             TDoubleList row = new TDoubleArrayList();
             row.add(cutoffMinutes);
             int cutoffSeconds = cutoffMinutes * 60;
-            for (int travelTimeMinutes = 0; travelTimeMinutes <= 120; travelTimeMinutes += 1) {
+            for (int travelTimeMinutes = 0; travelTimeMinutes <= AnalysisRequest.maxTripDurationMinutes; travelTimeMinutes += 1) {
                 int travelTimeSeconds = travelTimeMinutes * 60;
                 row.add(function.computeWeight(cutoffSeconds, travelTimeSeconds));
             }
@@ -84,7 +85,7 @@ public class TestDecayFunctions {
      */
     private static void testFunctionCharacteristics (DecayFunction function) {
         function.prepare();
-        for (int cutoffMinutes = 0; cutoffMinutes < 120; cutoffMinutes++) {
+        for (int cutoffMinutes = 0; cutoffMinutes < AnalysisRequest.maxTripDurationMinutes; cutoffMinutes++) {
             int cutoffSeconds = cutoffMinutes * 60;
             // First, check that the function is monotonically decreasing and all outputs are in range.
             double prevWeight = Double.POSITIVE_INFINITY;

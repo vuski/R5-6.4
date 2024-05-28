@@ -110,6 +110,8 @@ public class PickupWaitTimes {
     public static final AccessService NO_SERVICE_HERE = new AccessService(-1, null);
 
     /** Special instance representing no on-demand service defined, so we can access all stops with no wait. */
+    // 픽업 서비스가 존재할 경우 이 변수는 안 쓰이지만
+    // 픽업 서비스가 없는 대부분의 경우 이 변수값이 적용된다.
     public static final AccessService NO_WAIT_ALL_STOPS = new AccessService(0, null);
 
     /**

@@ -186,7 +186,7 @@ public class FastRaptorWorker {
                  departureTime >= request.fromTime;
                  departureTime -= DEPARTURE_STEP_SEC, minute--
         ) {
-            if (minute % 15 == 0) LOG.debug("  minute {}", minute);
+            if (minute % 15 == 0) LOG.debug("  minute {}, currentIteration {}", minute, currentIteration);
 
             // Run the raptor search. For this particular departure time, we receive N arrays of arrival times at all
             // stops, one for each randomized schedule: resultsForMinute[randScheduleNumber][transitStop]

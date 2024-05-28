@@ -1,34 +1,45 @@
+
 # Usage:
 # docker-compose build --build-arg r5version=$(cat build/version.txt)
-# docker-compose up 
+# docker-compose up
+
 version: '3'
 services:
+
   r5:
-    container_name: r5
+    container_name: r5-backend
     build: .
-    # image: ghcr.io/conveyal/r5:latest
     depends_on:
       - mongo
     links:
       - mongo
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '55'
     ports:
       - "7070:7070"
-    # TODO volumes for backend cache directory
+    environment:
+      - DATABASE_URI=mongodb://mongo:27017/analysis
+    volumes:
+      - r5-cache:/usr/data/cache  # cache 디렉토리를 볼륨에 마운트
+
+
   ui:
-    container_name: ui
+    container_name: r5-ui
     depends_on:
       - mongo
-    # build: ../analysis-ui
-    # image: ghcr.io/conveyal/analysis-ui:latest
-    image: 037a38bb2cdf
+    image: r5-ui
     ports:
       - "3000:3000"
     links:
       - r5
       - mongo
-    # Map in a config file with mapbox keys, telling the UI to contact host (container) r5
-    volumes:
-      - ./ui-env:/ui/.env.local:ro
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/analysis
+#    volumes:
+#      - ./ui-env:/ui/.env.local:ro
+
   mongo:
     container_name: mongo
     image: mongo
@@ -40,3 +51,4 @@ services:
 
 volumes:
   mongo-volume:
+  r5-cache:      # 볼륨을 여기서 정의

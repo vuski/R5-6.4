@@ -1,6 +1,8 @@
 package com.conveyal.r5.analyst.network;
 
+import com.conveyal.analysis.models.AnalysisRequest;
 import com.conveyal.r5.analyst.cluster.TravelTimeResult;
+
 
 import java.util.Arrays;
 
@@ -191,7 +193,7 @@ public class Distribution {
         int[] counts = travelTimeResult.getHistogram(point);
         result.skip = 0;
         result.masses = new double[counts.length];
-        for (int i = 0; i < 120; i++) {
+        for (int i = 0; i < AnalysisRequest.maxTripDurationMinutes ; i++) {
             result.masses[i] = counts[i];
         }
         result.normalize();

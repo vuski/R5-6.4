@@ -20,6 +20,7 @@ import com.conveyal.r5.streets.Split;
 import com.conveyal.r5.streets.StreetRouter;
 import com.conveyal.r5.transit.TransportNetwork;
 import com.conveyal.r5.transit.path.Path;
+import com.esotericsoftware.minlog.Log;
 import gnu.trove.map.TIntIntMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,8 @@ public class TravelTimeComputer {
      */
     public OneOriginResult computeTravelTimes() {
 
+        //access 모드를 바꾸면 computeTravelTimes에 진입하기 전에 새롭게 linkage 캐시를 연결한다.
+        LOG.debug("=========Computing travel times for task: {}==========", request.taskId);
         // 0. Preliminary range checking and setup =====================================================================
         if (!request.directModes.equals(request.accessModes)) {
             throw new IllegalArgumentException("Direct mode may not be different than access mode in Analysis.");
@@ -86,12 +89,15 @@ public class TravelTimeComputer {
             && !request.makeTauiSite
             && request.destinationPointSets[0] instanceof FreeFormPointSet
         ) {
+            // 지역 분석, 즉 여러 destination 분석이면서 grid가 아닌 경우
+            // request.destinationPointSets[0]을 넣는다. (거기에 FreeFormPointSet이 들어 있다)
             // Freeform; destination pointset was set by handleOneRequest in the main AnalystWorker
             destinations = request.destinationPointSets[0];
         } else {
             // Gridded (non-freeform) destinations. The extents are found differently in regional and single requests.
             WebMercatorExtents destinationGridExtents = request.getWebMercatorExtents();
             // Make a WebMercatorGridPointSet with the right extents, referring to the network's base grid and linkage.
+            // destinations 가 zoom과 가장자리 한계로 만들어진다.
             destinations = AnalysisWorkerTask.gridPointSetCache.get(destinationGridExtents, network.fullExtentGridPointSet);
             travelTimeReducer.checkOpportunityExtents(destinations);
         }
@@ -102,10 +108,12 @@ public class TravelTimeComputer {
 
         // A map from transit stop vertex indices to the travel time (in seconds) and mode used to reach those
         // vertices.
+        // 일단 만들어두고 나중에 결과를 업데이트해서 1위로 결정한다.
         StreetTimesAndModes bestAccessOptions = new StreetTimesAndModes();
 
         // Travel times in seconds to each destination point (or MAX_INT for unreachable points?)
         // Starts out as null but will be updated when any access leg search succeeds.
+        //
         PointSetTimes nonTransitTravelTimesToDestinations = null;
 
         // We will try to find a starting point in the street network and perform an access search with each street mode.
@@ -117,10 +125,15 @@ public class TravelTimeComputer {
         EnumSet<StreetMode> accessModes = LegMode.toStreetModeSet(request.accessModes);
 
         // Perform a street search for each access mode. For now, direct modes must be the same as access modes.
+        // BIKE and BIKE_RENT 요청이 동시에 들어올 경우 두 바퀴를 돌 수 밖에 없다.
+        // 나머지는 한 바퀴에 수행하는 것으로 항상 끝난다. ( 바로 위에서 한 가지만 return 받도록 되어 있다)
         for (StreetMode accessMode : accessModes) {
             LOG.info("Performing street search for mode: {}", accessMode);
 
             // Look up pick-up service for an access leg.
+            // 픽업 서비스가 있으면 해당 서비스를 반환한다.
+            // 픽업 서비스를 적용해야 하는데 유효하지 않을 경우에는 NO_SERVICE_HERE를 반환한다.
+            // 픽업 서비스가 상관없는 대부분의 경우에는 NO_WAIT_ALL_STOPS를 반환한다.
             PickupWaitTimes.AccessService accessService =
                     network.streetLayer.getAccessService(request.fromLat, request.fromLon, accessMode);
 
@@ -153,25 +166,33 @@ public class TravelTimeComputer {
             // often minimize distance to allow reuse at different speeds).
             // Preserve past behavior: only apply bike or walk time limits when those modes are used to access transit.
             if (request.hasTransit()) {
+                LOG.debug("Routing to transit stops for mode {}", accessMode);
                 sr.timeLimitSeconds = request.getMaxTimeSeconds(accessMode);
             } else {
+                LOG.debug("Routing directly to destinations for mode {}", accessMode);
                 sr.timeLimitSeconds = request.maxTripDurationMinutes * FastRaptorWorker.SECONDS_PER_MINUTE;
             }
             // Even if generalized cost tags were present on the input data, we always minimize travel time.
             // The generalized cost calculations currently increment time and weight by the same amount.
+            // 시간이냐 거리냐 설정
             sr.quantityToMinimize = StreetRouter.State.RoutingVariable.DURATION_SECONDS;
             sr.route();
             // Change to walking in order to reach transit stops in pedestrian-only areas like train stations.
             // This implies you are dropped off or have a very easy parking spot for your vehicle.
             // This kind of multi-stage search should also be used when building egress distance cost tables.
+            // walk 모드가 아니면, 도보로 계속 길찾기 하도록 설정
+            // 왜냐하면, 차량이 접근하지 못하는 곳에 정류장이 있을 수 있기 때문
             if (accessMode != StreetMode.WALK) {
                 sr.keepRoutingOnFoot();
             }
 
+            // 대중교통수단을 타는 길찾기라면, 위에서 찾았던 반경 내의 모든 정류장을 여기서 가져온다
+            // 그리고 아래에서 그 정류장들을 기준으로 길찾기를 다시 해서, 최종 결과들을 만드는 것 같다.
             if (request.hasTransit()) {
                 // Find access times to transit stops, keeping the minimum across all access street modes.
                 // Note that getReachedStops() returns the routing variable units, not necessarily seconds.
                 // TODO add logic here if linkedStops are specified in pickupDelay?
+                // 위에서 집어넣었던 stops의 Map을 가져온다.
                 TIntIntMap travelTimesToStopsSeconds = sr.getReachedStops();
                 if (accessService != NO_WAIT_ALL_STOPS) {
                     LOG.info("Delaying transit access times by {} seconds (to wait for {} pick-up).",
@@ -192,6 +213,7 @@ public class TravelTimeComputer {
             // every cell in a (possibly huge) destination grid. If this is measured to be inefficient, we could
             // construct a sub-grid that's an envelope around sr.originSplit's lat/lon (sized according to sr
             // .timeLimitSeconds and a mode-specific speed?), then iterate over the points in that sub-grid.
+            // 목적지까지의 도보 이동 시간을 계산한다. 비교용으로 사용됨
             {
                 LinkedPointSet linkedDestinations = network.linkageCache.getLinkage(
                         destinations,

@@ -7,7 +7,7 @@
 FROM openjdk:11
 ARG r5version
 ENV R5_VERSION=$r5version
-ENV JVM_HEAP_GB=2
+ENV JVM_HEAP_GB=32
 WORKDIR /r5
 COPY build/libs/r5-${R5_VERSION}-all.jar .
 # Use a configuration that connects to the database on another host (container)

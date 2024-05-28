@@ -63,6 +63,7 @@ public class TransportNetworkCache {
 
     /** Create a transport network cache. If source bucket is null, will work offline. */
     public TransportNetworkCache (FileStorage fileStorage, GTFSCache gtfsCache, OSMCache osmCache) {
+        LOG.debug("===================  Creating TransportNetworkCache. ===================");
         this.osmCache = osmCache;
         this.gtfsCache = gtfsCache;
         this.cache = createCache(DEFAULT_CACHE_SIZE);
@@ -110,6 +111,7 @@ public class TransportNetworkCache {
      *       I guess that's good as long as building distance tables is already parallelized.
      */
     public synchronized TransportNetwork getNetworkForScenario (String networkId, String scenarioId) {
+        LOG.debug("=============   public synchronized TransportNetwork getNetworkForScenario ===================   ");
         // If the networkId is different than previous calls, a new network will be loaded. Its transient nested map
         // of scenarios will be empty at first. This ensures it's initialized if null.
         // FIXME apparently this can't happen - the field is transient and initialized in TransportNetwork.
@@ -117,8 +119,9 @@ public class TransportNetworkCache {
         if (baseNetwork.scenarios == null) {
             baseNetwork.scenarios = new HashMap<>();
         }
-
+        LOG.debug("=============   TransportNetwork scenarioNetwork =  baseNetwork.scenarios.get(scenarioId); ===================   ");
         TransportNetwork scenarioNetwork =  baseNetwork.scenarios.get(scenarioId);
+        LOG.debug("=============   if (scenarioNetwork == null) { ===================   ");
         if (scenarioNetwork == null) {
             // The network for this scenario was not found in the cache. Create that scenario network and cache it.
             LOG.debug("Applying scenario to base network...");
@@ -135,6 +138,7 @@ public class TransportNetworkCache {
         } else {
             LOG.debug("Reusing cached TransportNetwork for scenario {}.", scenarioId);
         }
+        LOG.debug("=============  return from public synchronized TransportNetwork getNetworkForScenario ===================   ");
         return scenarioNetwork;
     }
 
@@ -284,6 +288,7 @@ public class TransportNetworkCache {
     }
 
     private LoadingCache createCache(int size) {
+        LOG.debug("===================  private LoadingCache createCache(int size) ===================");
         return Caffeine.newBuilder()
                 .maximumSize(size)
                 .build(this::loadNetwork);

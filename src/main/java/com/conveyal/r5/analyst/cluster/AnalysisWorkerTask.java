@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import com.conveyal.analysis.models.AnalysisRequest;
+
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -40,7 +42,7 @@ public abstract class AnalysisWorkerTask extends ProfileRequest {
      */
     public static final int MAX_REGIONAL_CUTOFFS = 12;
 
-    public static final int N_SINGLE_POINT_CUTOFFS = 121;
+    public static final int N_SINGLE_POINT_CUTOFFS = AnalysisRequest.maxTripDurationMinutes + 1;
 
     /** The largest number of percentiles we'll accept in a task. */
     public static final int MAX_PERCENTILES = 5;
@@ -279,7 +281,7 @@ public abstract class AnalysisWorkerTask extends ProfileRequest {
         }
         for (int c = 0; c < nCutoffs; c++) {
             checkArgument(cutoffsMinutes[c] >= 0, "Cutoffs must be non-negative integers.");
-            checkArgument(cutoffsMinutes[c] <= 120, "Cutoffs must be at most 120 minutes.");
+            checkArgument(cutoffsMinutes[c] <= AnalysisRequest.maxTripDurationMinutes, "Cutoffs must be at most 120 minutes.");
             if (c > 0) {
                 checkArgument(cutoffsMinutes[c] >= cutoffsMinutes[c - 1], "Cutoffs must be in ascending order.");
             }

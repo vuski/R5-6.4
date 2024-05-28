@@ -17,6 +17,9 @@ import com.conveyal.r5.transit.TransportNetworkCache;
 import com.conveyal.r5.transitive.TransitiveNetwork;
 import com.conveyal.r5.util.AsyncLoader;
 import com.conveyal.r5.util.ExceptionUtils;
+import com.conveyal.analysis.models.AnalysisRequest;
+
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.io.LittleEndianDataOutputStream;
 import org.apache.http.HttpEntity;
@@ -353,8 +356,8 @@ public class AnalysisWorker implements Runnable {
         // In this case our highest cutoff is always 120, so we need to search all the way out to 120 minutes.
         if (notNullOrEmpty(task.destinationPointSetKeys)) {
             task.decayFunction.prepare();
-            task.cutoffsMinutes = IntStream.rangeClosed(0, 120).toArray();
-            task.maxTripDurationMinutes = 120;
+            task.cutoffsMinutes = IntStream.rangeClosed(0, AnalysisRequest.maxTripDurationMinutes).toArray();
+            task.maxTripDurationMinutes = AnalysisRequest.maxTripDurationMinutes;
             task.loadAndValidateDestinationPointSets(pointSetCache);
         }
 
@@ -437,9 +440,9 @@ public class AnalysisWorker implements Runnable {
             int maxCutoffMinutes = Arrays.stream(task.cutoffsMinutes).max().getAsInt();
             int maxTripDurationSeconds = task.decayFunction.reachesZeroAt(maxCutoffMinutes * SECONDS_PER_MINUTE);
             int maxTripDurationMinutes = (int)(Math.ceil(maxTripDurationSeconds / 60D));
-            if (maxTripDurationMinutes > 120) {
+            if (maxTripDurationMinutes > AnalysisRequest.maxTripDurationMinutes) {
                 LOG.warn("Distance decay function reached zero above 120 minutes. Capping travel time at 120 minutes.");
-                maxTripDurationMinutes = 120;
+                maxTripDurationMinutes = AnalysisRequest.maxTripDurationMinutes;
             }
             task.maxTripDurationMinutes = maxTripDurationMinutes;
             LOG.debug("Maximum cutoff was {} minutes, limiting trip duration to {} minutes based on decay function {}.",

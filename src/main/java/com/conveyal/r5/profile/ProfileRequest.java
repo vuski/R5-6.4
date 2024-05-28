@@ -11,6 +11,10 @@ import com.conveyal.r5.model.json_serialization.TransitModeSetDeserializer;
 import com.conveyal.r5.model.json_serialization.TransitModeSetSerializer;
 import com.conveyal.r5.model.json_serialization.ZoneIdDeserializer;
 import com.conveyal.r5.model.json_serialization.ZoneIdSerializer;
+
+import com.conveyal.analysis.models.AnalysisRequest;
+
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -161,7 +165,7 @@ public class ProfileRequest implements Serializable, Cloneable {
      * For single-point tasks this default of 2 hours will generally be used, but a lower value could be specified when
      * performing slow computations such as fare-limited accessibility.
      */
-    public int maxTripDurationMinutes = 120;
+    public int maxTripDurationMinutes = AnalysisRequest.maxTripDurationMinutes;
 
     /**
      * The maximum number of rides, e.g. taking the L2 to the Red line to the Green line would be three rides.

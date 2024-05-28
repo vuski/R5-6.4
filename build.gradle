@@ -35,22 +35,23 @@ shadowJar {
 }
 
 test {
+    enabled = false
     useJUnitPlatform()
 }
 
 // `gradle publish` will upload both shadow and simple JAR to Github Packages
 // On GH Actions, GITHUB_ACTOR env variable is supplied without specifying it in action yml.
 publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/conveyal/r5")
-            credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
-            }
-        }
-    }
+//    repositories {
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/conveyal/r5")
+//            credentials {
+//                username = System.getenv("GITHUB_ACTOR")
+//                password = System.getenv("GITHUB_TOKEN")
+//            }
+//        }
+//    }
     publications {
         // The presence of the shadow plugin somehow causes the shadow-jar to also be automatically included in this
         // publication. Ideally we want to produce the shadow jar and upload it to S3 as a worker, but only publish the

@@ -18,6 +18,13 @@
     <logger name="graphql.GraphQL" level="WARN" />
     <logger name="org.mongodb.driver.connection" level="WARN" />
     <logger name="org.eclipse.jetty" level="WARN" />
-    <logger name="com.conveyal.r5.profile.FastRaptorWorker" level="INFO" />
-
+<!--    <logger name="com.conveyal.r5.profile.FastRaptorWorker" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.r5.analyst.TravelTimeComputer" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.r5.streets.StreetRouter" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.r5.transit.TransportNetworkCache" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.analysis.controllers.BrokerController" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.analysis.components.LocalWorkerLauncher" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.analysis.components.LocalBackendComponents" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.r5.analyst.LinkageCache" level="DEBUG" />-->
+<!--    <logger name="com.conveyal.r5.analyst.NetworkPreloader" level="DEBUG" />-->
 </configuration>

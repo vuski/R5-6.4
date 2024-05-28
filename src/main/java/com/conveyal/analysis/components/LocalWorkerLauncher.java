@@ -38,6 +38,7 @@ public class LocalWorkerLauncher implements WorkerLauncher {
     private final List<Thread> workerThreads = new ArrayList<>();
 
     public LocalWorkerLauncher (Config config, FileStorage fileStorage, GTFSCache gtfsCache, OSMCache osmCache) {
+        LOG.debug("===================  LocalWorkerLauncher ===================");
         LOG.debug("Running in OFFLINE mode, a maximum of {} worker threads will be started locally.", N_WORKERS_LOCAL);
         WorkerComponents.fileStorage = fileStorage; // Note this is a static field for now, should eventually be changed.
         transportNetworkCache = new TransportNetworkCache(fileStorage, gtfsCache, osmCache);

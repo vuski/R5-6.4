@@ -11,6 +11,8 @@ import com.conveyal.analysis.persistence.AnalysisDB;
 import com.conveyal.file.LocalFileStorage;
 import com.conveyal.gtfs.GTFSCache;
 import com.conveyal.r5.streets.OSMCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -22,7 +24,10 @@ import java.util.List;
  */
 public class LocalBackendComponents extends BackendComponents {
 
+    private static final Logger LOG = LoggerFactory.getLogger(LocalBackendComponents.class);
+
     public LocalBackendComponents () {
+        LOG.debug("===================  LocalBackendComponents ===================");
         config = BackendConfig.fromDefaultFile();
         taskScheduler = new TaskScheduler(config);
         fileStorage = new LocalFileStorage(config);
@@ -32,8 +37,12 @@ public class LocalBackendComponents extends BackendComponents {
         database = new AnalysisDB(config);
         eventBus = new EventBus(taskScheduler);
         authentication = new LocalAuthentication();
+
+        LOG.debug("===================  call LocalWorkerLauncher ===================");
         // TODO add nested LocalWorkerComponents here, to reuse some components, and pass it into the LocalWorkerLauncher?
         workerLauncher = new LocalWorkerLauncher(config, fileStorage, gtfsCache, osmCache);
+
+        LOG.debug("===================  call Broker ===================");
         broker = new Broker(config, fileStorage, eventBus, workerLauncher);
         censusExtractor = new SeamlessCensusGridExtractor(config);
         // Instantiate the HttpControllers last, when all the components except the HttpApi are already created.

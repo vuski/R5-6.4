@@ -4,6 +4,8 @@ import com.conveyal.r5.profile.FastRaptorWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.conveyal.analysis.models.AnalysisRequest;
+
 import java.util.Arrays;
 
 import static com.conveyal.r5.profile.FastRaptorWorker.UNREACHED;
@@ -56,7 +58,7 @@ public class TravelTimeResult {
             // Initializing the array to a non-null value will enable histogram recording.
             LOG.warn("Recording travel time histograms at every desitination. " +
                     "This increases memory consumption and should only be enabled in tests.");
-            histograms = new int[nPoints][120];
+            histograms = new int[nPoints][AnalysisRequest.maxTripDurationMinutes];
         }
     }
 

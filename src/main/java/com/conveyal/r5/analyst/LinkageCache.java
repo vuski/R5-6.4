@@ -79,8 +79,12 @@ public class LinkageCache {
      // basePointSet vs. baseStreetLayer vs. baseLinkage.
      */
     private class LinkageCacheLoader extends CacheLoader<Key, LinkedPointSet> implements Serializable {
+
         @Override
         public LinkedPointSet load(Key key) {
+
+            LOG.debug("=============   private class LinkageCacheLoader  // public LinkedPointSet load(Key key)  ===================   ");
+
             LOG.info("Building Linkage for {} because it was not found in cache.", key);
 
             // Case 1: This is a web mercator grid pointset which has a basePointSet (a supergrid), and we already
@@ -121,10 +125,13 @@ public class LinkageCache {
                     key.streetMode
                 );
             }
-
+            LOG.debug("=============  Executing Before new LinkedPointSet(key.pointSet, key.streetLayer, key.streetMode, baseLinkage);  ===================   ");
             // Build a new linkage from this PointSet to the supplied StreetNetwork,
             // initialized with the existing linkage to the base StreetNetwork when relevant.
-            return new LinkedPointSet(key.pointSet, key.streetLayer, key.streetMode, baseLinkage);
+            LinkedPointSet linkage = new LinkedPointSet(key.pointSet, key.streetLayer, key.streetMode, baseLinkage);
+
+            LOG.debug("=============  Returning from  private class LinkageCacheLoader  // public LinkedPointSet load(Key key)  ===================   ");
+            return linkage;
         }
     }
 

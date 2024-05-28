@@ -88,7 +88,7 @@ public class NetworkPreloader extends AsyncLoader<NetworkPreloader.Key, Transpor
 
     @Override
     protected TransportNetwork buildValue(Key key) {
-
+        LOG.debug("=============  NetworkPreloader. protected TransportNetwork buildValue ===================   ");
         // First get the network, apply the scenario, and (re)build distance tables.
         // Those steps should eventually be pulled out of the cache loaders to make progress reporting more granular.
         setProgress(key, 0, "Building network...");
@@ -97,7 +97,9 @@ public class NetworkPreloader extends AsyncLoader<NetworkPreloader.Key, Transpor
         // Get the set of points to which we are measuring travel time. Any smaller sub-grids created here will
         // reference the scenarioNetwork's built-in full-extent pointset, so can reuse its linkage.
         // TODO handle multiple destination grids.
+        LOG.debug("=============  setProgress(key, 0, \"Fetching gridded point set...\"); ===================   ");
         setProgress(key, 0, "Fetching gridded point set...");
+        LOG.debug("=============  PointSet pointSet = AnalysisWorkerTask.gridPointSetCache.get(key.destinationGridExtents, s ===================   ");
         PointSet pointSet = AnalysisWorkerTask.gridPointSetCache.get(key.destinationGridExtents, scenarioNetwork.fullExtentGridPointSet);
 
         // Now rebuild grid linkages as needed. One linkage per mode, and one cost table per egress mode.
@@ -110,14 +112,18 @@ public class NetworkPreloader extends AsyncLoader<NetworkPreloader.Key, Transpor
         // fields on Factory classes rather than passing them as parameters into constructors or factory methods.
         for (StreetMode mode : key.allModes) {
             setProgress(key, 0, "Linking destination grid to streets for " + mode + "...");
+            LOG.debug("=============  LinkedPointSet linkedPointSet = scenarioNetwork.linkageCache ===================   ");
             LinkedPointSet linkedPointSet = scenarioNetwork.linkageCache
                     .getLinkage(pointSet, scenarioNetwork.streetLayer, mode);
             if (key.egressModes.contains(mode)) {
+                LOG.debug("=============  ProgressListener progressListener = new NetworkPreloaderProgressListener(this, key); ===================   ");
                 ProgressListener progressListener = new NetworkPreloaderProgressListener(this, key);
+                LOG.debug("=============   linkedPointSet.getEgressCostTable(progressListener); ===================   ");
                 linkedPointSet.getEgressCostTable(progressListener);
             }
         }
         // Finished building all needed inputs for analysis, return the completed network to the AsyncLoader code.
+        LOG.debug("=============  return from NetworkPreloader. protected TransportNetwork buildValue ===================   ");
         return scenarioNetwork;
     }
 

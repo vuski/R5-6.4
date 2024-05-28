@@ -25,6 +25,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.IntFunction;
 
+import com.conveyal.analysis.models.AnalysisRequest;
+
 import static spark.Spark.halt;
 
 /**
@@ -52,7 +54,7 @@ public class ParetoServer {
 
         LOG.info("Performing multiobjective transit routing");
         long startTime = System.currentTimeMillis();
-        profileRequest.maxTripDurationMinutes = 120; // hack
+        profileRequest.maxTripDurationMinutes = AnalysisRequest.maxTripDurationMinutes; // hack
         IntFunction<DominatingList> listSupplier =
                 (departureTime) -> new FareDominatingList(
                         profileRequest.inRoutingFareCalculator,
